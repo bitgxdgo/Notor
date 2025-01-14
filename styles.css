@@ -1,0 +1,1108 @@
+/* Material Design 主题颜色 */
+:root {
+    --primary-color: #1976d2;
+    --secondary-color: #dc004e;
+    --background-color: #fafafa;
+    --surface-color: #ffffff;
+    --text-primary: rgba(0, 0, 0, 0.87);
+    --text-secondary: rgba(0, 0, 0, 0.6);
+}
+
+/* 基础样式 */
+body {
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Material UI 按钮样式 */
+.mui-button-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 
+                0 2px 2px 0 rgba(0,0,0,0.14), 
+                0 1px 5px 0 rgba(0,0,0,0.12);
+}
+
+/* 文件夹列表项样式 */
+.folder-item {
+    padding: 12px 16px;
+    margin: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.folder-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.folder-item.selected {
+    background-color: rgba(25, 118, 210, 0.08);
+    color: var(--primary-color);
+}
+
+/* 笔记列表项样式 */
+.note-item {
+    padding: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.note-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* 笔记编辑区样式 */
+.note-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px;
+}
+
+.note-title-input {
+    font-size: 24px;
+    padding: 8px 0;
+    margin-bottom: 8px;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    width: 100%;
+}
+
+.note-title-input:focus {
+    outline: none;
+    border-bottom-color: var(--primary-color);
+}
+
+.note-meta {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+}
+
+.note-content-input {
+    width: 100%;
+    border: none;
+    resize: none;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.5;
+    padding: 8px 0;
+}
+
+/* 主布局样式 */
+.sidebar-left {
+    min-width: 200px;
+    max-width: 500px;
+    width: 240px; /* 初始宽度 */
+    height: 100%;
+    border-right: 4px solid #f0f0f0; /* 加粗边框并改变颜色 */
+    background-color: var(--surface-color);
+    overflow-y: auto;
+    position: relative; /* 添加相对定位 */
+}
+
+/* 当鼠标移动到边框区域时改变颜色 */
+.sidebar-left:hover {
+    border-right-color: var(--primary-color);
+}
+
+/* 改变鼠标样式 */
+.sidebar-left {
+    cursor: ew-resize;  /* 在右边框区域显示调整宽度的光标 */
+}
+
+/* 防止拖动时选中文本 */
+.dragging {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+.right-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mui-toolbar {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.toolbar-left, .toolbar-right {
+    display: flex;
+    gap: 8px;
+}
+
+.content-container {
+    display: flex;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.content-middle {
+    width: 300px;
+    min-width: 200px;
+    max-width: 500px;
+    border-right: 4px solid #f0f0f0;
+    background-color: var(--surface-color);
+    overflow-y: auto;
+    position: relative;
+}
+
+/* 添加笔记列表拖动效果 */
+.content-middle:hover {
+    border-right-color: var(--primary-color);
+}
+
+.content-middle {
+    cursor: ew-resize;
+}
+
+.content-right {
+    flex: 1;
+    background-color: var(--surface-color);
+    overflow-y: auto;
+    min-width: 400px; /* 添加最小宽度限制 */
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* 模态对话框样式 */
+.mui-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.mui-dialog-content {
+    background-color: white;
+    padding: 24px;
+    border-radius: 4px;
+    min-width: 300px;
+    box-shadow: 0px 11px 15px -7px rgba(0,0,0,0.2),
+                0px 24px 38px 3px rgba(0,0,0,0.14),
+                0px 9px 46px 8px rgba(0,0,0,0.12);
+}
+
+.mui-dialog h3 {
+    margin: 0 0 20px 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.mui-textfield {
+    margin-bottom: 24px;
+}
+
+.mui-textfield input {
+    width: 100%;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.42);
+    outline: none;
+    transition: border-bottom-color 0.2s;
+}
+
+.mui-textfield input:focus {
+    border-bottom-color: var(--primary-color);
+}
+
+.mui-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+/* 显示/隐藏逻辑 */
+.mui-dialog[style*="display: block"] {
+    display: flex !important;
+}
+
+/* 添加删除按钮的特殊样式（可选） */
+#deleteNoteBtn {
+    color: var(--secondary-color);
+}
+
+#deleteNoteBtn:disabled {
+    color: rgba(0, 0, 0, 0.26);
+}
+
+/* 右键菜单样式 */
+.context-menu {
+    position: fixed;
+    background: white;
+    border-radius: 4px;
+    padding: 8px 0;
+    min-width: 160px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2),
+                0 4px 5px rgba(0,0,0,0.14),
+                0 1px 10px rgba(0,0,0,0.12);
+    z-index: 1000;
+}
+
+.context-menu-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.context-menu-item .material-icons {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+/* Markdown 编辑器样式调整 */
+.CodeMirror {
+    height: calc(100vh - 240px) !important;
+    border: none;
+}
+
+.editor-toolbar {
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    opacity: 0.8;
+}
+
+.editor-toolbar:hover {
+    opacity: 1;
+}
+
+.editor-toolbar.fullscreen {
+    opacity: 1;
+}
+
+.editor-toolbar a {
+    color: var(--text-secondary) !important;
+}
+
+.editor-toolbar a.active, 
+.editor-toolbar a:hover {
+    color: var(--primary-color) !important;
+    background: rgba(25, 118, 210, 0.08);
+}
+
+/* 笔记详情区域调整 */
+.note-detail {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.note-meta {
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* AI 对话面板样式 */
+.ai-chat-panel {
+    position: absolute;
+    right: -400px; /* 初始状态隐藏 */
+    top: 0;
+    width: 400px;
+    height: 100%;
+    background-color: var(--surface-color);
+    box-shadow: -2px 0 4px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s ease;
+    z-index: 1000; /* 添加较高的 z-index 确保在上层 */
+}
+
+.ai-chat-panel.active {
+    right: 0;
+}
+
+.ai-chat-header {
+    display: flex;
+    justify-content: space-between; /* 修改为 space-between 以支持右侧按钮 */
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.header-title {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.new-chat-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.new-chat-btn:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.new-chat-btn .material-icons {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+.ai-chat-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+.ai-chat-input {
+    position: relative;
+    display: flex;
+    align-items: flex-start; /* 改为 flex-start 以适应多行文本 */
+    gap: 8px;
+    padding: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+.ai-chat-input textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    padding: 8px;
+    min-height: 40px; /* 改为最小高度 */
+    max-height: 200px; /* 添加最大高度限制 */
+    font-family: inherit;
+    box-sizing: border-box;
+    width: calc(100% - 16px);
+    margin: 0;
+    line-height: 1.5;
+    overflow-y: auto; /* 当超过最大高度时显示滚动条 */
+    transition: height 0.1s ease; /* 添加平滑过渡效果 */
+}
+
+/* AI 对话按钮激活状态 */
+#aiChatBtn.active {
+    color: var(--primary-color);
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+/* 调整左侧栏的新建文件夹按钮位置 */
+.sidebar-left {
+    position: relative; /* 为按钮定位提供参考 */
+}
+
+.sidebar-left > div:first-child {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+}
+
+/* 消息样式 */
+.message {
+    margin: 8px 16px;
+    max-width: 85%;
+    clear: both;
+}
+
+.message-content {
+    padding: 8px 12px;
+    border-radius: 8px;
+    word-wrap: break-word;
+    line-height: 1.5;
+}
+
+/* 用户消息样式 */
+.message.user {
+    float: right;
+}
+
+.message.user .message-content {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* AI 消息样式 */
+.message.assistant {
+    float: left;
+}
+
+.message.assistant .message-content {
+    background-color: #f0f0f0;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    clear: both;
+}
+
+/* 加载动画 */
+.loading {
+    display: inline-block;
+    margin: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+}
+
+/* 确保内容区域可以滚动 */
+.ai-chat-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+}
+
+/* 输入框样式优化 */
+.ai-chat-input textarea {
+    resize: none;
+    height: 40px;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+/* 添加包装容器样式 */
+.context-wrapper {
+    display: flex;
+    flex-direction: column;
+    margin: 8px 16px;
+}
+
+/* 上下文选择器面板样式 */
+.context-selector {
+    display: none;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.context-selector.active {
+    display: block;
+}
+
+/* Add Context 按钮样式 */
+.add-context-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border: 1px dashed rgba(0, 0, 0, 0.12);
+    border-radius: 16px;
+    background: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    height: 28px;
+    white-space: nowrap;
+}
+
+.add-context-btn:hover {
+    background-color: rgba(25, 118, 210, 0.04);
+}
+
+/* 搜索框容器 */
+.context-search {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+}
+
+/* 搜索输入框 */
+.context-search input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.context-search input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* 可用笔记标题 */
+.available-notes-header {
+    padding: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: rgba(0, 0, 0, 0.6);
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 8px;
+}
+
+/* 笔记列表项 */
+.note-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.note-list-item:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+.note-list-item .note-title {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.note-list-item .note-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-left: 8px;
+}
+
+/* 其他样式保持不变 */
+
+/* Context tabs 样式 */
+.context-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    align-items: center;
+    min-height: 40px;
+}
+
+.context-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background-color: rgba(25, 118, 210, 0.08);
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--primary-color);
+    height: 28px;
+    white-space: nowrap;
+}
+
+.context-tab .close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 4px;
+}
+
+.context-tab .close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 修改标签容器样式 */
+#contextTabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+/* 优化标签样式 */
+.context-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background-color: rgba(25, 118, 210, 0.08);
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--primary-color);
+    height: 28px;
+    white-space: nowrap;
+}
+
+.context-tab .close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-left: 4px;
+}
+
+.context-tab .close-btn:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* 优化选择器面板样式 */
+.context-selector {
+    display: none;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.context-selector.active {
+    display: block;
+}
+
+/* 修改 context-actions 的样式，使按钮和标签在同一行 */
+.context-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px;
+    min-height: 40px;
+}
+
+/* Agent 选择器样式 */
+.agent-selector {
+    position: absolute;
+    bottom: calc(100% + 8px); /* 在输入框上方 8px 的位置 */
+    left: 16px;
+    right: 16px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 8px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+}
+
+.agent-selector.active {
+    display: block;
+}
+
+.agent-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.agent-item:hover {
+    background-color: rgba(25, 118, 210, 0.08);
+}
+
+.agent-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(25, 118, 210, 0.1);
+    border-radius: 50%;
+    color: var(--primary-color);
+}
+
+.agent-name {
+    font-weight: 500;
+}
+
+.agent-description {
+    display: none; /* 隐藏描述文本 */
+}
+
+/* 历史记录面板 */
+.history-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1100;
+}
+
+.history-panel.active {
+    display: block;
+}
+
+.history-panel-content {
+    padding: 16px;
+}
+
+/* 搜索框区域 */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    margin-right: 16px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 4px;
+}
+
+/* 关闭按钮 */
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    color: rgba(0,0,0,0.54);
+}
+
+.close-btn:hover {
+    color: rgba(0,0,0,0.87);
+}
+
+/* 修改已有的 new-chat-btn 相关样式 */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 历史按钮样式复用 new-chat-btn 的样式 */
+.history-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.history-btn:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.history-btn .material-icons {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+/* 历史记录弹窗样式 */
+.history-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background: #1e1e1e;  /* 深色背景 */
+    color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1100;
+    display: none;
+    padding: 16px;
+}
+
+.history-dialog.active {
+    display: block;
+}
+
+/* 弹窗头部样式 */
+.history-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+/* 搜索框容器 */
+.history-search {
+    flex: 1;
+    margin-right: 16px;
+    position: relative;
+}
+
+/* 搜索框样式 */
+.history-search input {
+    width: 100%;
+    padding: 8px 12px;
+    background: #2d2d2d;
+    border: 1px solid #3a3a3a;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+}
+
+.history-search input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* 关闭按钮样式 */
+.history-close-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-close-btn:hover {
+    color: white;
+}
+
+/* 历史记录列表样式 */
+.history-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.history-item {
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background: #2d2d2d;
+    transition: background-color 0.2s;
+}
+
+.history-item:hover {
+    background: #363636;
+}
+
+/* 滚动条样式 */
+.history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.history-list::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.history-list::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+    border-radius: 3px;
+}
+
+.history-list::-webkit-scrollbar-thumb:hover {
+    background: #454545;
+}
+
+/* Markdown 样式 */
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+    margin: 8px 0;
+    font-weight: 600;
+}
+
+.message-content p {
+    margin: 8px 0;
+}
+
+.message-content code {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.message-content pre {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.message-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.message-content ul,
+.message-content ol {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.message-content blockquote {
+    margin: 8px 0;
+    padding-left: 12px;
+    border-left: 4px solid rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.7);
+}
+
+/* 调整消息气泡中的链接颜色 */
+.message.assistant .message-content a {
+    color: var(--primary-color);
+}
+
+.message.user .message-content a {
+    color: white;
+}
+
+/* 调整代码块在不同消息类型中的显示 */
+.message.user .message-content code,
+.message.user .message-content pre {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 消息底部样式 */
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+/* 复制按钮样式 */
+.copy-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+/* 鼠标悬停时显示复制按钮 */
+.message:hover .copy-btn {
+    opacity: 1;
+}
+
+.copy-btn:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.copy-btn .material-icons {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+/* 复制成功时的动画效果 */
+.copy-btn.copied .material-icons {
+    color: var(--primary-color);
+    animation: copied 0.2s ease-in-out;
+}
+
+@keyframes copied {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* 搜索按钮样式 */
+.search-btn {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 1;
+}
+
+.search-btn:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+.search-btn .material-icons {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+/* 调整输入框左侧padding以适应图标 */
+.ai-chat-input textarea {
+    padding-left: 10px;
+}

@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>笔记应用</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="node_modules/simplemde/dist/simplemde.min.css">
+    <script src="node_modules/simplemde/dist/simplemde.min.js"></script>
+    <script src="node_modules/marked/marked.min.js"></script>
+</head>
+<body>
+    <div style="display: flex; height: 100vh;">
+        <!-- 左侧文件夹栏 -->
+        <div class="sidebar-left">
+            <div style="padding: 16px;">
+                <button class="mui-button-primary" onclick="showNewFolderDialog()">
+                    <span class="material-icons">create_new_folder</span>
+                    新建文件夹
+                </button>
+            </div>
+            <div id="folders-list" class="mui-list"></div>
+        </div>
+
+        <!-- 右侧容器 -->
+        <div class="right-container">
+            <!-- 工具栏 -->
+            <div class="mui-toolbar">
+                <div class="toolbar-left">
+                    <button class="mui-button" id="newNoteBtn" onclick="createNewNote()" disabled>
+                        <span class="material-icons">note_add</span>
+                        新建笔记
+                    </button>
+                    <button class="mui-button" id="deleteNoteBtn" onclick="deleteCurrentNote()" disabled>
+                        <span class="material-icons">delete</span>
+                        删除笔记
+                    </button>
+                </div>
+                <div class="toolbar-right">
+                    <button class="mui-button" id="aiChatBtn" onclick="toggleAIChat()">
+                        <span class="material-icons">smart_toy</span>
+                        AI 助手
+                    </button>
+                </div>
+            </div>
+
+            <!-- 内容区域 -->
+            <div class="content-container">
+                <!-- 笔记列表 -->
+                <div class="content-middle">
+                    <div id="notes-list" class="mui-list"></div>
+                </div>
+
+                <!-- 笔记详情 -->
+                <div class="content-right mui-paper"></div>
+
+                <!-- 添加 AI 对话区域 -->
+                <div class="ai-chat-panel" id="aiChatPanel">
+                    <div class="ai-chat-header">
+                        <div class="header-title">AI 对话助手</div>
+                        <div class="header-actions">
+                            <button class="new-chat-btn" onclick="createNewChat()">
+                                <span class="material-icons">add</span>
+                            </button>
+                            <button class="history-btn" onclick="toggleHistoryPanel()">
+                                <span class="material-icons">history</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 对话内容区域 -->
+                    <div class="ai-chat-content" id="aiChatContent">
+                        <!-- 消息将在这里动态添加 -->
+                    </div>
+
+                    <!-- Add Context 按钮和面板移到输入框上方 -->
+                    <div class="context-wrapper">
+                        <div class="context-selector" id="contextSelector">
+                            <div class="context-search">
+                                <input type="text" id="noteSearchInput" placeholder="Search Note by name">
+                            </div>
+                            <div class="available-notes-header">AVAILABLE NOTE</div>
+                            <div id="availableNotesList"></div>
+                        </div>
+                        <!-- 修改这部分结构，将按钮和tabs放在同一个容器中 -->
+                        <div class="context-actions">
+                            <button class="add-context-btn" id="addContextBtn">
+                                <span class="material-icons">add</span>
+                                Add Context
+                            </button>
+                            <div id="contextTabs"></div>
+                        </div>
+                    </div>
+
+                    <div class="ai-chat-input">
+                        <div id="agentSelector" class="agent-selector">
+                            <!-- Agent 列表将在这里动态生成 -->
+                        </div>
+                        <button class="search-btn" title="网络搜索">
+                            <span class="material-icons">language</span>
+                        </button>
+                        <textarea 
+                            id="aiChatInput" 
+                            placeholder="在这里输入您的问题..."
+                            onkeyup="handleInputKeyup(event)"
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建文件夹对话框 -->
+    <div id="newFolderModal" class="mui-dialog">
+        <div class="mui-dialog-content">
+            <h3>新建文件夹</h3>
+            <div class="mui-textfield">
+                <input type="text" id="folderNameInput" placeholder="请输入文件夹名称">
+            </div>
+            <div class="mui-dialog-actions">
+                <button class="mui-button" onclick="closeNewFolderDialog()">取消</button>
+                <button class="mui-button-primary" onclick="createNewFolder()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加重命名对话框 -->
+    <div id="renameFolderModal" class="mui-dialog">
+        <div class="mui-dialog-content">
+            <h3>重命名文件夹</h3>
+            <div class="mui-textfield">
+                <input type="text" id="newFolderNameInput" placeholder="请输入新的文件夹名称">
+            </div>
+            <div class="mui-dialog-actions">
+                <button class="mui-button" onclick="closeRenameFolderDialog()">取消</button>
+                <button class="mui-button-primary" onclick="confirmRenameFolder()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加右键菜单 -->
+    <div id="folderContextMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" onclick="showRenameFolderDialog()">
+            <span class="material-icons">edit</span>
+            重命名文件夹
+        </div>
+        <div class="context-menu-item" onclick="deleteSelectedFolder()">
+            <span class="material-icons">delete</span>
+            删除文件夹
+        </div>
+    </div>
+
+    <!-- 添加消息模板 -->
+    <template id="messageTemplate">
+        <div class="message">
+            <div class="message-content"></div>
+            <div class="message-footer">
+                <div class="message-time"></div>
+                <!-- 只在 assistant 消息中显示复制按钮 -->
+                <button class="copy-btn" title="复制内容">
+                    <span class="material-icons">content_copy</span>
+                </button>
+            </div>
+        </div>
+    </template>
+
+    <!-- 添加遮罩层和历史对话弹窗 -->
+    <div class="modal-overlay" id="historyOverlay"></div>
+    <div class="history-dialog" id="historyDialog">
+        <div class="history-dialog-header">
+            <div class="history-search">
+                <input type="text" placeholder="搜索历史对话...">
+            </div>
+            <button class="history-close-btn" onclick="toggleHistoryPanel()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="history-list">
+            <!-- 历史记录项会在这里动态生成 -->
+            <div class="history-item">
+                对话历史1
+            </div>
+            <div class="history-item">
+                对话历史2
+            </div>
+            <!-- 更多历史记录... -->
+        </div>
+    </div>
+
+    <script>
+        let currentFolderId = null;
+        let currentNoteId = null;
+        let selectedFolderId = null;
+
+        // AI 对话面板控制
+        let isAIChatVisible = false;
+
+        // 确保 simplemde 变量在全局范围内定义
+        let simplemde = null;
+
+        // 当前会话ID
+        let currentConversationId = null;
+        let aiController = null;
+
+        // 存储已选中的笔记
+        let selectedNotes = new Set();
+
+        // 添加变量跟踪当前选中的 Agent
+        let currentAgentDescription = null;
+        let isSearchMode = false;
+
+        // 初始化 AI 控制器
+        // async function initAIChat() {
+        //     try {
+        //         console.log('开始初始化 AI 聊天...');
+        //         if (!window.ai) {
+        //             throw new Error('AI 模块未加载');
+        //         }
+                
+        //         // 检查是否已经初始化
+        //         if (!window.ai.isInitialized()) {
+        //             console.log('初始化 AI 控制器...');
+        //             await window.ai.init();
+        //             console.log('AI 控制器初始化成功');
+        //         }
+                
+        //         // 创建新会话
+        //         await createNewConversation();
+        //         console.log('新会话创建成功:', currentConversationId);
+        //     } catch (error) {
+        //         console.error('AI 控制器初始化失败:', error);
+        //         throw error;
+        //     }
+        // }
+
+        // 创建新会话
+        async function createNewConversation() {
+            try {
+                currentConversationId = await aiController.db.createConversation();
+            } catch (error) {
+                console.error('创建会话失败:', error);
+            }
+        }
+
+        // 修改选择 Agent 的函数
+        function selectAgent(agentId, agentName) {
+            const agent = agents.find(a => a.id === agentId);
+            if (!agent) return;
+            
+            // 保存当前 Agent 的 description
+            currentAgentDescription = agent.description;
+            
+            const input = document.getElementById('aiChatInput');
+            const cursorPosition = input.selectionStart;
+            const textBeforeCursor = input.value.substring(0, cursorPosition - 1); // 移除 @
+            const textAfterCursor = input.value.substring(cursorPosition);
+            
+            // 插入 Agent 名称
+            input.value = `${textBeforeCursor}@${agentName} ${textAfterCursor}`;
+            
+            // 设置光标位置
+            const newCursorPosition = cursorPosition + agentName.length + 1;
+            input.setSelectionRange(newCursorPosition, newCursorPosition);
+            
+            // 隐藏选择器
+            hideAgentSelector();
+            
+            // 让输入框重新获得焦点
+            input.focus();
+        }
+
+        // 修改发送消息的函数
+        // async function sendMessage() {
+        //     const input = document.getElementById('aiChatInput');
+        //     const content = input.value.trim();
+            
+        //     if (!content) return;
+            
+        //     // 确保有会话ID
+        //     if (!currentConversationId) {
+        //         console.log('创建新会话...');
+        //         try {
+        //             currentConversationId = await window.aiApi.createConversation();
+        //             console.log('新会话创建成功:', currentConversationId);
+        //         } catch (error) {
+        //             console.error('创建新会话失败:', error);
+        //             return;
+        //         }
+        //     }
+            
+        //     // 1. 立即显示用户消息并清空输入
+        //     appendMessage('user', content);
+        //     input.value = '';
+            
+        //     // 保存用户消息
+        //     if (currentConversationId) {
+        //         console.log('准备保存用户消息到数据库:', {
+        //             conversationId: currentConversationId,
+        //             content: content
+        //         });
+        //         try {
+        //             await window.aiApi.addMessage(currentConversationId, 'user', content);
+        //             console.log('用户消息保存成功');
+        //         } catch (error) {
+        //             console.error('保存用户消息失败:', error);
+        //         }
+        //     } else {
+        //         console.warn('未找到当前会话ID，用户消息未保存');
+        //     }
+            
+        //     // 2. 显示加载状态
+        //     const loadingMessage = appendMessage('system', '正在思考...');
+            
+        //     try {
+        //         // 3. 原有的消息处理逻辑保持不变
+        //         const templates = window.aiApi.getAllTemplates();
+        //         let template;
+        //         let promptData = { userInput: content };
+                
+        //         const hasContext = selectedNotes.size > 0;
+        //         if (hasContext) {
+        //             const notesContent = await getSelectedNotesContent();
+        //             promptData.notesContext = notesContent;
+        //         }
+                
+        //         // 根据条件选择合适的模板
+        //         if (currentAgentDescription && hasContext) {
+        //             template = templates.withAgentAndContext;
+        //             promptData.agentDescription = currentAgentDescription;
+        //         } else if (currentAgentDescription) {
+        //             template = templates.withAgent;
+        //             promptData.agentDescription = currentAgentDescription;
+        //         } else if (hasContext) {
+        //             template = templates.withContext;
+        //         } else {
+        //             template = templates.basic;
+        //         }
+                
+        //         // 构建最终的消息
+        //         const messages = [{
+        //             role: 'system',
+        //             content: template.system.replace(/{(\w+)}/g, (match, key) => promptData[key] || match)
+        //         }, {
+        //             role: 'user',
+        //             content: template.user.replace(/{(\w+)}/g, (match, key) => promptData[key] || match)
+        //         }];
+                
+        //         // 发送消息
+        //         const response = await window.aiApi.chat(messages);
+                
+        //         // 4. 移除加载消息
+        //         if (loadingMessage) {
+        //             loadingMessage.remove();
+        //         }
+                
+        //         // 5. 显示 AI 响应并保存
+        //         if (response) {
+        //             appendMessage('assistant', response.content);
+        //             // 保存 AI 响应
+        //             if (currentConversationId) {
+        //                 console.log('准备保存 AI 响应到数据库:', {
+        //                     conversationId: currentConversationId,
+        //                     content: response.content
+        //                 });
+        //                 try {
+        //                     await window.aiApi.addMessage(currentConversationId, 'assistant', response.content);
+        //                     console.log('AI 响应保存成功');
+        //                 } catch (error) {
+        //                     console.error('保存 AI 响应失败:', error);
+        //                 }
+        //             } else {
+        //                 console.warn('未找到当前会话ID，AI 响应未保存');
+        //             }
+        //         }
+                
+        //         currentAgentDescription = null;
+                
+        //     } catch (error) {
+        //         console.error('发送消息失败:', error);
+        //         // 6. 更新加载消息为错误提示
+        //         if (loadingMessage) {
+        //             const contentElement = loadingMessage.querySelector('.message-content');
+        //             if (contentElement) {
+        //                 contentElement.textContent = '发送消息失败，请重试';
+        //             }
+        //         }
+        //     }
+        // }
+        async function sendMessage() {
+    const input = document.getElementById('aiChatInput');
+    const content = input.value.trim();
+    
+    if (!content) return;
+    
+    // 确保有会话ID
+    if (!currentConversationId) {
+        console.log('创建新会话...');
+        try {
+            currentConversationId = await window.aiApi.createConversation();
+            console.log('新会话创建成功:', currentConversationId);
+        } catch (error) {
+            console.error('创建新会话失败:', error);
+            return;
+        }
+    }
+    
+    // 1. 立即显示用户消息并清空输入
+    appendMessage('user', content);
+    input.value = '';
+    
+    // 保存用户消息
+    if (currentConversationId) {
+        console.log('准备保存用户消息到数据库:', {
+            conversationId: currentConversationId,
+            content: content
+        });
+        try {
+            await window.aiApi.addMessage(currentConversationId, 'user', content);
+            console.log('用户消息保存成功');
+        } catch (error) {
+            console.error('保存用户消息失败:', error);
+        }
+    }
+    
+    // 2. 显示加载状态
+    const loadingMessage = appendMessage('system', '正在思考...');
+    
+    try {
+        let response;
+        
+        if (isSearchMode) {
+            // 搜索模式
+            response = await window.aiApi.search(content);
+            
+            // 移除加载消息
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+            
+            // 合并内容和引用来源到一条消息
+            let fullContent = response.content;
+            if (response.citations && response.citations.length > 0) {
+                fullContent += '\n\n引用来源:\n' + 
+                    response.citations.map(citation => `- ${citation}`).join('\n');
+            }
+            
+            // 显示合并后的消息并保存
+            appendMessage('assistant', fullContent);
+            if (currentConversationId) {
+                try {
+                    await window.aiApi.addMessage(currentConversationId, 'assistant', fullContent);
+                    console.log('搜索响应保存成功');
+                } catch (error) {
+                    console.error('保存搜索响应失败:', error);
+                }
+            }
+        } else {
+            // 聊天模式
+            const templates = window.aiApi.getAllTemplates();
+            let template;
+            let promptData = { userInput: content };
+            
+            const hasContext = selectedNotes.size > 0;
+            if (hasContext) {
+                const notesContent = await getSelectedNotesContent();
+                promptData.notesContext = notesContent;
+            }
+            
+            // 根据条件选择合适的模板
+            if (currentAgentDescription && hasContext) {
+                template = templates.withAgentAndContext;
+                promptData.agentDescription = currentAgentDescription;
+            } else if (currentAgentDescription) {
+                template = templates.withAgent;
+                promptData.agentDescription = currentAgentDescription;
+            } else if (hasContext) {
+                template = templates.withContext;
+            } else {
+                template = templates.basic;
+            }
+            
+            // 构建最终的消息
+            const messages = [{
+                role: 'system',
+                content: template.system.replace(/{(\w+)}/g, (match, key) => promptData[key] || match)
+            }, {
+                role: 'user',
+                content: template.user.replace(/{(\w+)}/g, (match, key) => promptData[key] || match)
+            }];
+            
+            // 发送消息
+            response = await window.aiApi.chat(messages);
+            
+            // 移除加载消息
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+            
+            // 显示 AI 响应并保存
+            if (response) {
+                appendMessage('assistant', response.content);
+                // 保存 AI 响应
+                if (currentConversationId) {
+                    try {
+                        await window.aiApi.addMessage(currentConversationId, 'assistant', response.content);
+                        console.log('AI 响应保存成功');
+                    } catch (error) {
+                        console.error('保存 AI 响应失败:', error);
+                    }
+                }
+            }
+            
+            currentAgentDescription = null;
+        }
+        
+    } catch (error) {
+        console.error('发送消息失败:', error);
+        if (loadingMessage) {
+            const contentElement = loadingMessage.querySelector('.message-content');
+            if (contentElement) {
+                contentElement.textContent = '发送消息失败，请重试';
+            }
+        }
+    }
+}
+        
+
+        // 获取选中笔记的内容
+        async function getSelectedNotesContent() {
+            try {
+                const contents = [];
+                for (const noteId of selectedNotes) {
+                    const note = await window.db.getNoteById(noteId);
+                    if (note) {
+                        contents.push(`${note.title}:\n${note.content}`);
+                    }
+                }
+                return contents.join('\n\n');
+            } catch (error) {
+                console.error('获取笔记内容失败:', error);
+                return '';
+            }
+        }
+
+        // 显示消息
+        function appendMessage(role, content) {
+            const container = document.getElementById('aiChatContent');
+            const template = document.getElementById('messageTemplate');
+            
+            const messageElement = template.content.cloneNode(true).querySelector('.message');
+            messageElement.classList.add(role);
+            
+            const contentElement = messageElement.querySelector('.message-content');
+            contentElement.innerHTML = marked.parse(content);
+            
+            const timeElement = messageElement.querySelector('.message-time');
+            timeElement.textContent = new Date().toLocaleTimeString();
+            
+            // 处理复制按钮
+            const copyBtn = messageElement.querySelector('.copy-btn');
+            if (copyBtn) {
+                if (role === 'assistant') {
+                    copyBtn.addEventListener('click', () => {
+                        // 复制原始内容而不是HTML
+                        navigator.clipboard.writeText(content)
+                            .then(() => {
+                                // 显示复制成功的临时提示
+                                copyBtn.classList.add('copied');
+                                setTimeout(() => {
+                                    copyBtn.classList.remove('copied');
+                                }, 2000);
+                            })
+                            .catch(err => console.error('复制失败:', err));
+                    });
+                } else {
+                    // 如果不是AI助手的消息,隐藏复制按钮
+                    copyBtn.style.display = 'none';
+                }
+            }
+            
+            container.appendChild(messageElement);
+            container.scrollTop = container.scrollHeight;
+            
+            return messageElement;
+        }
+
+        // 显示加载状态
+        function showLoading() {
+            const container = document.getElementById('aiChatContent');
+            const loadingElement = document.createElement('div');
+            loadingElement.className = 'loading';
+            loadingElement.textContent = '正在思考...';
+            container.appendChild(loadingElement);
+            container.scrollTop = container.scrollHeight;
+            return loadingElement;
+        }
+
+        // 处理输入框按键事件
+        function handleInputKeydown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // 在页面加载完成后立即初始化
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('页面加载完成，开始初始化...');
+            try {
+                await initAIChat();
+            } catch (error) {
+                console.error('初始化失败:', error);
+            }
+        });
+
+        // 显示新建文件夹对话框
+        function showNewFolderDialog() {
+            const modal = document.getElementById('newFolderModal');
+            modal.style.display = 'flex';  // 改为 flex
+            const input = document.getElementById('folderNameInput');
+            input.value = '';
+            input.focus();
+        }
+
+        // 关闭对话框
+        function closeNewFolderDialog() {
+            document.getElementById('newFolderModal').style.display = 'none';
+        }
+
+        // 添加点击背景关闭对话框的功能
+        document.getElementById('newFolderModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewFolderDialog();
+            }
+        });
+
+        // 创建新文件夹
+        async function createNewFolder() {
+            const folderName = document.getElementById('folderNameInput').value.trim();
+            if (folderName) {
+                try {
+                    await window.db.createFolder(folderName);
+                    console.log('文件夹创建成功:', folderName);  // 添加调试日志
+                    await updateFoldersList();  // 更新列表
+                    closeNewFolderDialog();
+                } catch (error) {
+                    console.error('创建文件夹失败:', error);
+                    alert('创建文件夹失败: ' + error.message);
+                }
+            }
+        }
+
+        // 更新文件夹列表
+        async function updateFoldersList() {
+            try {
+                const folders = await window.db.getAllFolders();
+                const foldersList = document.getElementById('folders-list');
+                foldersList.innerHTML = folders.map(folder => `
+                    <div class="folder-item" data-folder-id="${folder.id}" onclick="selectFolder(${folder.id})">
+                        <span class="material-icons">folder</span>
+                        ${folder.name}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('更新文件夹列表失败:', error);
+            }
+        }
+
+        // 文件夹选择处理
+        async function selectFolder(folderId) {
+            currentFolderId = folderId;
+            // 保存当前选中的文件夹ID
+            localStorage.setItem('lastSelectedFolder', folderId);
+            
+            // 更新选中状态的样式
+            document.querySelectorAll('.folder-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            document.querySelector(`[data-folder-id="${folderId}"]`).classList.add('selected');
+            
+            document.getElementById('newNoteBtn').disabled = false;
+            document.getElementById('newNoteBtn').classList.add('active');
+            
+            await loadNotes(folderId);
+            
+            // 如果有保存的笔记ID，尝试加载该笔记
+            const lastNoteId = localStorage.getItem('lastSelectedNote');
+            if (lastNoteId) {
+                try {
+                    const note = await window.db.getNoteById(lastNoteId);
+                    if (note && note.folder_id === currentFolderId) {
+                        displayNoteDetail(note);
+                    }
+                } catch (error) {
+                    console.error('加载上次笔记失败:', error);
+                }
+            }
+            
+            // 更新 Available Notes 列表
+            await updateAvailableNotes();
+        }
+
+        // 添加更新 Available Notes 列表的函数
+        async function updateAvailableNotes() {
+            if (!currentFolderId) return;
+            
+            try {
+                // 获取最近的10条笔记
+                const recentNotes = await window.db.getRecentNotes(currentFolderId, 10);
+                const notesList = document.getElementById('availableNotesList');
+                
+                // 更新列表显示
+                notesList.innerHTML = recentNotes.map(note => `
+                    <div class="note-list-item" data-note-id="${note.id}">
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-time">${new Date(note.updated_at).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+                
+                // 添加点击事件
+                notesList.querySelectorAll('.note-list-item').forEach(item => {
+                    item.addEventListener('click', () => selectNoteAsContext(item.dataset.noteId));
+                });
+            } catch (error) {
+                console.error('更新可用笔记列表失败:', error);
+            }
+        }
+
+        // 加载笔记列表
+        async function loadNotes(folderId) {
+            try {
+                const notes = await window.db.getNotesByFolder(folderId);
+                const notesList = document.getElementById('notes-list');
+                notesList.innerHTML = notes.map(note => `
+                    <div class="note-item" onclick="displayNoteDetail(${JSON.stringify(note).replace(/"/g, '&quot;')})">
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-preview">${note.content.substring(0, 50)}...</div>
+                        <div class="note-time">
+                            <span class="material-icons" style="font-size: 16px;">schedule</span>
+                            ${new Date(note.created_at).toLocaleString()}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载笔记失败:', error);
+            }
+        }
+
+        // 创建新笔记
+        async function createNewNote() {
+            if (!currentFolderId) return;
+            
+            try {
+                // 创建笔记并获取返回的笔记ID
+                const noteId = await window.db.createNote(currentFolderId);
+                // 刷新笔记列表
+                await loadNotes(currentFolderId);
+                // 显示新创建的笔记详情
+                const note = {
+                    id: noteId,
+                    title: "新建笔记",
+                    content: "在这里添加笔记",
+                    created_at: new Date().toISOString()
+                };
+                displayNoteDetail(note);
+            } catch (error) {
+                console.error('创建笔记失败:', error);
+            }
+        }
+
+        // 修改显示笔记详情的函数
+        function displayNoteDetail(note) {
+            currentNoteId = note.id;
+            document.getElementById('deleteNoteBtn').disabled = false;
+            
+            localStorage.setItem('lastSelectedNote', note.id);
+            
+            const contentRight = document.querySelector('.content-right');
+            contentRight.innerHTML = `
+                <div class="note-detail" data-note-id="${note.id}">
+                    <input type="text" 
+                        class="note-title-input" 
+                        value="${note.title || ''}"
+                        onchange="updateNoteTitle(this.value)"
+                    >
+                    <div class="note-meta">
+                        创建时间: ${new Date(note.created_at).toLocaleString()}
+                    </div>
+                    <textarea id="markdown-editor">${note.content || ''}</textarea>
+                </div>
+            `;
+
+            // 确保在 DOM 更新后初始化编辑器
+            setTimeout(() => {
+                initMarkdownEditor(note.content || '');
+            }, 0);
+        }
+
+        // 初始化 Markdown 编辑器
+        function initMarkdownEditor(content) {
+            // 如果已存在编辑器实例，先销毁
+            if (simplemde) {
+                simplemde.toTextArea();
+                simplemde = null;
+            }
+
+            const editor = document.getElementById("markdown-editor");
+            if (!editor) return;
+
+            simplemde = new SimpleMDE({
+                element: editor,
+                spellChecker: false,
+                status: ["lines", "words", "cursor"],
+                toolbar: [
+                    "bold", "italic", "heading", "|",
+                    "quote", "unordered-list", "ordered-list", "|",
+                    "link", "image", "code", "table", "|",
+                    "preview", "side-by-side", "fullscreen", "|",
+                    {
+                        name: "save",
+                        action: function() {
+                            const content = simplemde.value();
+                            updateNoteContent(content);
+                        },
+                        className: "fa fa-save",
+                        title: "保存",
+                    }
+                ],
+                placeholder: "在这里输入 Markdown 格式的笔记...",
+                autosave: {
+                    enabled: true,
+                    uniqueId: "note-" + currentNoteId,
+                    delay: 1000,
+                }
+            });
+
+            // 添加内容变化监听
+            simplemde.codemirror.on("change", function() {
+                const content = simplemde.value();
+                updateNoteContent(content);
+            });
+        }
+
+        // 添加更新笔记的函数
+        async function updateNote(title, content) {
+            const noteDetail = document.querySelector('.note-detail');
+            const noteId = noteDetail.dataset.noteId;
+            
+            try {
+                // 添加更新时间
+                const updated_at = new Date().toISOString();
+                await window.db.updateNote(noteId, title, content, updated_at);
+                // 更新笔记列表中的显示
+                await loadNotes(currentFolderId);
+            } catch (error) {
+                console.error('更新笔记失败:', error);
+            }
+        }
+
+        // 更新笔记标题
+        let titleUpdateTimeout;
+        function updateNoteTitle(title) {
+            clearTimeout(titleUpdateTimeout);
+            titleUpdateTimeout = setTimeout(() => {
+                const content = document.querySelector('.note-content-input').value;
+                updateNote(title, content);
+            }, 500);  // 500ms 防抖
+        }
+
+        // 更新笔记内容
+        let contentUpdateTimeout;
+        function updateNoteContent(content) {
+            clearTimeout(contentUpdateTimeout);
+            contentUpdateTimeout = setTimeout(() => {
+                const title = document.querySelector('.note-title-input').value;
+                updateNote(title, content);
+            }, 500);  // 500ms 防抖
+        }
+
+        // 添加删除笔记的函数
+        async function deleteCurrentNote() {
+            if (!currentNoteId) return;
+            
+            if (confirm('确定要删除这条笔记吗？')) {
+                try {
+                    await window.db.deleteNote(currentNoteId);
+                    // 清空笔记详情
+                    document.querySelector('.content-right').innerHTML = '';
+                    // 重新加载笔记列表
+                    await loadNotes(currentFolderId);
+                    // 禁用删除按钮
+                    document.getElementById('deleteNoteBtn').disabled = true;
+                    // 清除当前笔记ID
+                    currentNoteId = null;
+                    localStorage.removeItem('lastSelectedNote');
+                } catch (error) {
+                    console.error('删除笔记失败:', error);
+                    alert('删除笔记失败: ' + error.message);
+                }
+            }
+        }
+
+        // 添加文件夹右键菜单处理
+        function setupFolderContextMenu() {
+            const foldersList = document.getElementById('folders-list');
+            const contextMenu = document.getElementById('folderContextMenu');
+
+            // 为文件夹列表添加右键事件监听
+            foldersList.addEventListener('contextmenu', function(e) {
+                // 找到最近的文件夹项
+                const folderItem = e.target.closest('.folder-item');
+                if (folderItem) {
+                    e.preventDefault(); // 阻止默认右键菜单
+                    selectedFolderId = parseInt(folderItem.dataset.folderId);
+                    
+                    // 显示自定义右键菜单
+                    contextMenu.style.display = 'block';
+                    contextMenu.style.left = e.pageX + 'px';
+                    contextMenu.style.top = e.pageY + 'px';
+                }
+            });
+
+            // 点击其他地方时隐藏菜单
+            document.addEventListener('click', function() {
+                contextMenu.style.display = 'none';
+            });
+        }
+
+        // 删除选中的文件夹
+        async function deleteSelectedFolder() {
+            if (!selectedFolderId) return;
+
+            if (confirm('确定要删除这个文件夹及其所有笔记吗？')) {
+                try {
+                    await window.db.deleteFolder(selectedFolderId);
+                    
+                    // 清空右侧内容
+                    document.querySelector('.content-right').innerHTML = '';
+                    document.getElementById('notes-list').innerHTML = '';
+                    
+                    // 禁用新建笔记和删除笔记按钮
+                    document.getElementById('newNoteBtn').disabled = true;
+                    document.getElementById('deleteNoteBtn').disabled = true;
+                    
+                    // 清除当前选中状态
+                    currentFolderId = null;
+                    currentNoteId = null;
+                    localStorage.removeItem('lastSelectedFolder');
+                    localStorage.removeItem('lastSelectedNote');
+                    
+                    // 更新文件夹列表
+                    await updateFoldersList();
+                } catch (error) {
+                    console.error('删除文件夹失败:', error);
+                    alert('删除文件夹失败: ' + error.message);
+                }
+            }
+        }
+
+        // 显示重命名对话框
+        function showRenameFolderDialog() {
+            const modal = document.getElementById('renameFolderModal');
+            const input = document.getElementById('newFolderNameInput');
+            // 修改获取当前文件夹名称的方式，排除图标文本
+            const folderItem = document.querySelector(`[data-folder-id="${selectedFolderId}"]`);
+            const currentFolderName = folderItem.textContent.replace('folder', '').trim();
+            input.value = currentFolderName;
+            modal.style.display = 'flex';
+            input.focus();
+            input.select(); // 选中当前文本
+        }
+
+        // 关闭重命名对话框
+        function closeRenameFolderDialog() {
+            document.getElementById('renameFolderModal').style.display = 'none';
+        }
+
+        // 确认重命名
+        async function confirmRenameFolder() {
+            const newName = document.getElementById('newFolderNameInput').value.trim();
+            if (newName && selectedFolderId) {
+                try {
+                    await window.db.renameFolder(selectedFolderId, newName);
+                    await updateFoldersList(); // 更新文件夹列表
+                    closeRenameFolderDialog();
+                } catch (error) {
+                    console.error('重命名文件夹失败:', error);
+                    alert('重命名文件夹失败: ' + error.message);
+                }
+            }
+        }
+
+        // 添加点击背景关闭重命名对话框的功能
+        document.getElementById('renameFolderModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeRenameFolderDialog();
+            }
+        });
+
+        // 添加回车键确认重命名的功能
+        document.getElementById('newFolderNameInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                confirmRenameFolder();
+            }
+        });
+
+        // 初始化所有可拖动区域
+        function initResizers() {
+            // 初始化左侧文件夹栏拖动
+            initSidebarResizer();
+            // 初始化笔记列表拖动
+            initNotesListResizer();
+        }
+
+        // 左侧文件夹栏拖动功能
+        function initSidebarResizer() {
+            const leftSide = document.querySelector('.sidebar-left');
+            let isResizing = false;
+            let x = 0;
+            let leftWidth = 0;
+
+            const mouseDownHandler = function(e) {
+                const rect = leftSide.getBoundingClientRect();
+                if (e.clientX > rect.right - 8 && e.clientX < rect.right + 8) {
+                    isResizing = true;
+                    x = e.clientX;
+                    leftWidth = rect.width;
+                    
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    document.body.classList.add('dragging');
+                }
+            };
+
+            const mouseMoveHandler = function(e) {
+                if (!isResizing) return;
+                
+                const dx = e.clientX - x;
+                const newLeftWidth = leftWidth + dx;
+                
+                if (newLeftWidth >= 200 && newLeftWidth <= 500) {
+                    leftSide.style.width = `${newLeftWidth}px`;
+                }
+            };
+
+            const mouseUpHandler = function() {
+                isResizing = false;
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                document.body.classList.remove('dragging');
+            };
+
+            leftSide.addEventListener('mousedown', mouseDownHandler);
+        }
+
+        // 笔记列表区域拖动功能
+        function initNotesListResizer() {
+            const notesList = document.querySelector('.content-middle');
+            let isResizing = false;
+            let x = 0;
+            let notesListWidth = 0;
+
+            const mouseDownHandler = function(e) {
+                const rect = notesList.getBoundingClientRect();
+                if (e.clientX > rect.right - 8 && e.clientX < rect.right + 8) {
+                    isResizing = true;
+                    x = e.clientX;
+                    notesListWidth = rect.width;
+                    
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    document.body.classList.add('dragging');
+                }
+            };
+
+            const mouseMoveHandler = function(e) {
+                if (!isResizing) return;
+                
+                const dx = e.clientX - x;
+                const newWidth = notesListWidth + dx;
+                
+                // 检查右侧区域是否有足够空间
+                const container = document.querySelector('.content-container');
+                const containerWidth = container.getBoundingClientRect().width;
+                const minRightWidth = 400; // 右侧最小宽度
+
+                if (newWidth >= 200 && newWidth <= 500 && 
+                    (containerWidth - newWidth) >= minRightWidth) {
+                    notesList.style.width = `${newWidth}px`;
+                }
+            };
+
+            const mouseUpHandler = function() {
+                isResizing = false;
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                document.body.classList.remove('dragging');
+            };
+
+            notesList.addEventListener('mousedown', mouseDownHandler);
+        }
+
+        // 修改笔记详情区域的宽度调整功能
+        function initNotesDetailResizer() {
+            const noteDetail = document.querySelector('.content-right');
+            const aiChatPanel = document.getElementById('aiChatPanel');
+            let isResizing = false;
+            let startX = 0;
+            let startWidth = 0;
+
+            noteDetail.addEventListener('mousedown', function(e) {
+                const rect = noteDetail.getBoundingClientRect();
+                if (e.clientX > rect.right - 8 && e.clientX < rect.right + 8) {
+                    isResizing = true;
+                    startX = e.clientX;
+                    startWidth = rect.width;
+
+                    document.addEventListener('mousemove', mouseMoveHandler);
+                    document.addEventListener('mouseup', mouseUpHandler);
+                    document.body.classList.add('dragging');
+                }
+            });
+
+            function mouseMoveHandler(e) {
+                if (!isResizing) return;
+
+                const dx = e.clientX - startX;
+                const newWidth = startWidth + dx;
+                
+                // 考虑 AI 对话面板的状态来设置最大宽度
+                const maxWidth = isAIChatVisible ? 
+                    window.innerWidth - 600 : // AI 面板显示时
+                    window.innerWidth - 200;  // AI 面板隐藏时
+
+                if (newWidth >= 400 && newWidth <= maxWidth) {
+                    noteDetail.style.width = `${newWidth}px`;
+                }
+            }
+
+            function mouseUpHandler() {
+                isResizing = false;
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                document.body.classList.remove('dragging');
+            }
+        }
+
+        // 在页面加载时初始化所有功能
+        window.onload = async function() {
+            initResizers();
+            initNotesDetailResizer();
+            setupFolderContextMenu();
+            try {
+                const folders = await window.db.getAllFolders();
+                await updateFoldersList();
+                
+                // 如果没有文件夹，显示新建文件夹对话框
+                if (folders.length === 0) {
+                    showNewFolderDialog();
+                } else {
+                    // 获取上次选中的文件夹ID
+                    const lastFolderId = localStorage.getItem('lastSelectedFolder');
+                    if (lastFolderId) {
+                        // 选中上次的文件夹
+                        selectFolder(parseInt(lastFolderId));
+                    }
+                }
+            } catch (error) {
+                console.error('初始化失败:', error);
+            }
+        }
+
+        // AI 对话面板控制
+        function toggleAIChat() {
+            const aiChatPanel = document.getElementById('aiChatPanel');
+            const aiChatBtn = document.getElementById('aiChatBtn');
+            isAIChatVisible = !isAIChatVisible;
+
+            if (isAIChatVisible) {
+                aiChatPanel.classList.add('active');
+                aiChatBtn.classList.add('active');
+            } else {
+                aiChatPanel.classList.remove('active');
+                aiChatBtn.classList.remove('active');
+            }
+        }
+
+        // 确保 DOM 加载完成后绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成');
+        });
+
+        // 处理 Add Context 按钮点击事件
+        document.addEventListener('DOMContentLoaded', function() {
+            // 保留原有的 Add Context 按钮点击事件
+            document.getElementById('addContextBtn').addEventListener('click', function(event) {
+                event.stopPropagation(); // 阻止事件冒泡
+                const contextSelector = document.getElementById('contextSelector');
+                contextSelector.classList.toggle('active');
+                
+                if (contextSelector.classList.contains('active')) {
+                    updateAvailableNotes();
+                }
+            });
+            
+            // 添加点击面板内部的事件处理
+            document.getElementById('contextSelector').addEventListener('click', function(event) {
+                event.stopPropagation(); // 阻止事件冒泡，使点击面板内部时不会触发关闭
+            });
+            
+            // 添加文档级别的点击事件监听
+            document.addEventListener('click', function() {
+                const contextSelector = document.getElementById('contextSelector');
+                if (contextSelector.classList.contains('active')) {
+                    contextSelector.classList.remove('active');
+                }
+            });
+        });
+
+        // 加载可用笔记列表
+        async function loadAvailableNotes() {
+            try {
+                // 获取所有笔记
+                const notes = await window.db.getAllNotes();
+                const notesList = document.getElementById('availableNotesList');
+                
+                // 渲染笔记列表
+                notesList.innerHTML = notes.map(note => `
+                    <div class="note-list-item" data-note-id="${note.id}">
+                        ${note.title}
+                    </div>
+                `).join('');
+                
+                // 添加笔记点击事件
+                notesList.querySelectorAll('.note-list-item').forEach(item => {
+                    item.addEventListener('click', () => selectNoteAsContext(item.dataset.noteId));
+                });
+            } catch (error) {
+                console.error('加载笔记列表失败:', error);
+            }
+        }
+
+        // 添加防抖函数
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // 处理搜索输入
+        const handleSearch = debounce(async (keyword) => {
+            try {
+                const notes = await window.db.searchNotes(keyword);
+                updateAvailableNotesList(notes);
+            } catch (error) {
+                console.error('搜索笔记失败:', error);
+            }
+        }, 300);
+
+        // 更新可用笔记列表
+        function updateAvailableNotesList(notes) {
+            const notesList = document.getElementById('availableNotesList');
+            notesList.innerHTML = notes.map(note => `
+                <div class="note-list-item" data-note-id="${note.id}">
+                    <div class="note-title">${note.title}</div>
+                    <div class="note-time">${new Date(note.updated_at).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+            
+            // 添加点击事件
+            notesList.querySelectorAll('.note-list-item').forEach(item => {
+                item.addEventListener('click', () => selectNoteAsContext(item.dataset.noteId));
+            });
+        }
+
+        // 修改搜索框的事件监听
+        document.getElementById('noteSearchInput').addEventListener('input', function(e) {
+            const keyword = e.target.value.trim();
+            if (keyword) {
+                handleSearch(keyword);
+            } else {
+                // 当搜索框为空时，显示当前文件夹的最近笔记
+                updateAvailableNotes();
+            }
+        });
+
+        // 选择笔记作为上下文
+        async function selectNoteAsContext(noteId) {
+            try {
+                // 检查是否已经选中
+                if (selectedNotes.has(noteId)) {
+                    console.log('笔记已经被选中');
+                    return;
+                }
+
+                const note = await window.db.getNoteById(noteId);
+                if (!note) {
+                    console.error('未找到笔记:', noteId);
+                    return;
+                }
+
+                // 添加到已选中集合
+                selectedNotes.add(noteId);
+
+                // 截断标题
+                const truncatedTitle = note.title.length > 8 ? 
+                    note.title.substring(0, 8) + '...' : 
+                    note.title;
+
+                // 创建并添加新的 tab
+                const tabsContainer = document.getElementById('contextTabs');
+                const tabElement = document.createElement('div');
+                tabElement.className = 'context-tab';
+                tabElement.dataset.noteId = noteId;
+                tabElement.innerHTML = `
+                    ${truncatedTitle}
+                    <span class="close-btn" onclick="removeContextTab('${noteId}')">×</span>
+                `;
+                tabsContainer.appendChild(tabElement);
+            } catch (error) {
+                console.error('选择笔记失败:', error);
+            }
+        }
+
+        // 移除上下文标签
+        function removeContextTab(noteId) {
+            selectedNotes.delete(noteId);
+            const tab = document.querySelector(`.context-tab[data-note-id="${noteId}"]`);
+            if (tab) {
+                // 添加移除动画
+                tab.style.opacity = '0';
+                tab.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    tab.remove();
+                }, 200);
+            }
+        }
+
+        // 修改 db.js 中获取笔记的方法
+        async function getNoteById(noteId) {
+            try {
+                const note = await window.db.getNoteById(noteId);
+                return note;
+            } catch (error) {
+                console.error('获取笔记失败:', error);
+                throw error;
+            }
+        }
+
+        // 添加一个函数来处理标签的布局优化
+        function optimizeTabsLayout() {
+            const tabsContainer = document.getElementById('contextTabs');
+            const tabs = tabsContainer.querySelectorAll('.context-tab');
+            
+            // 计算容器宽度
+            const containerWidth = tabsContainer.offsetWidth;
+            let currentRowWidth = 0;
+            
+            tabs.forEach(tab => {
+                const tabWidth = tab.offsetWidth + 8; // 8px 为间距
+                if (currentRowWidth + tabWidth > containerWidth) {
+                    // 需要换行
+                    currentRowWidth = tabWidth;
+                } else {
+                    currentRowWidth += tabWidth;
+                }
+            });
+        }
+
+        // 在窗口大小改变时优化布局
+        window.addEventListener('resize', optimizeTabsLayout);
+
+        // 处理输入框按键事件
+        function handleInputKeyup(event) {
+            const input = event.target;
+            const agentSelector = document.getElementById('agentSelector');
+            
+            // 获取光标位置
+            const cursorPosition = input.selectionStart;
+            const textBeforeCursor = input.value.substring(0, cursorPosition);
+            
+            // 检查是否刚输入了 @
+            if (textBeforeCursor.endsWith('@')) {
+                console.log('Showing agent selector'); // 添加调试日志
+                showAgentSelector();
+            } else {
+                hideAgentSelector();
+            }
+        }
+
+        // 显示 Agent 选择器
+        function showAgentSelector() {
+            const agentSelector = document.getElementById('agentSelector');
+            if (!agentSelector) {
+                console.error('Agent selector element not found');
+                return;
+            }
+
+            // 清空并重新填充选择器内容
+            agentSelector.innerHTML = agents.map(agent => `
+                <div class="agent-item" onclick="selectAgent('${agent.id}', '${agent.name}')">
+                    <div class="agent-icon">
+                        <span class="material-icons">smart_toy</span>
+                    </div>
+                    <span class="agent-name">${agent.name}</span>
+                    <span class="agent-description">${agent.description}</span>
+                </div>
+            `).join('');
+
+            // 添加 active 类显示选择器
+            agentSelector.classList.add('active');
+            console.log('Agent selector shown'); // 添加调试日志
+        }
+
+        // 隐藏 Agent 选择器
+        function hideAgentSelector() {
+            const agentSelector = document.getElementById('agentSelector');
+            agentSelector.classList.remove('active');
+        }
+
+            // 添加搜索模式切换函数
+        function toggleSearchMode() {
+            isSearchMode = !isSearchMode;
+            const searchBtn = document.querySelector('.search-btn');
+            const input = document.getElementById('aiChatInput');
+    
+            // 更新UI状态
+            searchBtn.classList.toggle('active');
+            input.placeholder = isSearchMode ? 
+            '输入搜索内容...' : 
+            '在这里输入您的问题...';
+        
+            // 更新按钮图标颜色
+            const icon = searchBtn.querySelector('.material-icons');
+            icon.style.color = isSearchMode ? 
+            'var(--primary-color)' : 
+            'var(--text-secondary)';
+        }
+        // 确保在页面加载完成后绑定事件
+        document.querySelector('.search-btn').addEventListener('click', toggleSearchMode);
+
+        // 确保 agents 数组已定义
+        const agents = [
+            { 
+                id: 'summarizer', 
+                name: '总结助手', 
+                description: 'I am a professional document summarization assistant. I specialize in extracting key information from texts and generating concise, well-structured summaries. I excel at identifying main points, arguments, and conclusions, presenting them in a clear, organized format. Whether it\'s long articles, meeting minutes, or research papers, I help you quickly grasp the essential content while maintaining the original context and meaning.' 
+            },
+            { 
+                id: 'translator', 
+                name: '翻译助手', 
+                description: 'I am a professional Chinese-to-English translation assistant. I accurately understand the original text\'s meaning and context, ensuring translations that are both faithful to the source and natural in English. I pay special attention to technical terminology accuracy and appropriate conversion of idioms and colloquialisms. I maintain the original tone and style while ensuring the translation reads fluently and naturally in English.' 
+            },
+            { 
+                id: 'coder', 
+                name: '代码助手', 
+                description: 'I am a professional programming assistant with expertise across multiple programming languages and best practices. I help with code optimization, debugging, refactoring, and architectural design. I provide clear code explanations and improvement suggestions while considering readability, performance, and maintainability. I can assist with algorithm design, problem-solving, and offer detailed documentation when needed.' 
+            }
+        ];
+
+        // 在页面加载完成后添加事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('aiChatInput');
+            if (input) {
+                input.addEventListener('keyup', handleInputKeyup);
+            }
+        });
+
+        // 添加自动调整高度的函数
+        function autoResizeTextarea(element) {
+            // 重置高度，以便正确计算新的高度
+            element.style.height = 'auto';
+            
+            // 计算新的高度
+            const newHeight = Math.min(element.scrollHeight, 200); // 最大高度限制为 200px
+            element.style.height = `${Math.max(40, newHeight)}px`; // 最小高度为 40px
+        }
+
+        // 在页面加载完成后添加事件监听
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('aiChatInput');
+            if (textarea) {
+                // 输入时自动调整高度
+                textarea.addEventListener('input', function() {
+                    autoResizeTextarea(this);
+                });
+                
+                // 初始化时设置高度
+                autoResizeTextarea(textarea);
+            }
+        });
+
+        // 在输入框上添加键盘事件监听
+        document.getElementById('aiChatInput').addEventListener('keydown', function(event) {
+            // 检查是否按下 Enter 键
+            if (event.key === 'Enter') {
+                // 如果同时按下了 Shift 键，允许换行
+                if (event.shiftKey) {
+                    return; // 不阻止默认行为，允许换行
+                }
+                
+                // 仅按下 Enter 键，阻止默认换行并发送消息
+                event.preventDefault();
+                
+                const content = this.value.trim();
+                if (content) {
+                    // 直接调用现有的 sendMessage 函数
+                    sendMessage();
+                }
+            }
+        });
+
+        // 添加新建会话的功能
+        async function createNewChat() {
+            try {
+                // 1. 直接创建新会话
+                currentConversationId = await window.aiApi.createConversation();
+                
+                // 2. 清空对话区域
+                const chatContent = document.getElementById('aiChatContent');
+                chatContent.innerHTML = '';
+                
+                // 3. 清空已选择的上下文和 Agent
+                selectedNotes.clear();
+                currentAgentDescription = null;
+                
+                // 4. 更新上下文标签显示
+                document.getElementById('contextTabs').innerHTML = '';
+                
+                console.log('新会话创建成功:', currentConversationId);
+            } catch (error) {
+                console.error('创建新会话失败:', error);
+            }
+        }
+
+        // 修改显示历史记录面板的函数
+        async function toggleHistoryPanel() {
+            const dialog = document.getElementById('historyDialog');
+            const overlay = document.getElementById('historyOverlay');
+            
+            if (dialog.style.display === 'none' || !dialog.style.display) {
+                // 显示弹窗时加载历史记录
+                try {
+                    const conversations = await window.aiApi.getRecentConversations();
+                    const historyList = document.querySelector('.history-list');
+                    
+                    // 对每个会话获取其最后一条消息
+                    const conversationsWithLastMessage = await Promise.all(
+                        conversations.map(async (conv) => {
+                            const messages = await window.aiApi.getMessages(conv.id);
+                            const lastMessage = messages[messages.length - 1];
+                            return {
+                                ...conv,
+                                title: lastMessage ? lastMessage.content.substring(0, 15) + '...' : '新对话'
+                            };
+                        })
+                    );
+                    
+                    historyList.innerHTML = conversationsWithLastMessage.map(conv => `
+                        <div class="history-item" data-conversation-id="${conv.id}">
+                            <div class="history-title">${conv.title}</div>
+                            <div class="history-time">${new Date(conv.created_at).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+                    
+                    // 添加点击事件处理
+                    historyList.querySelectorAll('.history-item').forEach(item => {
+                        item.addEventListener('click', () => loadConversation(item.dataset.conversationId));
+                    });
+                } catch (error) {
+                    console.error('加载会话历史失败:', error);
+                }
+            }
+            
+            // 切换显示状态
+            dialog.style.display = dialog.style.display === 'none' ? 'block' : 'none';
+            overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // 添加加载指定会话的函数
+        async function loadConversation(conversationId) {
+            try {
+                const messages = await window.aiApi.getMessages(conversationId);
+                const chatContent = document.getElementById('aiChatContent');
+                
+                // 清空当前对话内容
+                chatContent.innerHTML = '';
+                
+                // 显示历史消息
+                messages.forEach(msg => {
+                    appendMessage(msg.role, msg.content);
+                });
+                
+                // 更新当前会话ID
+                currentConversationId = conversationId;
+                
+                // 关闭历史面板
+                toggleHistoryPanel();
+            } catch (error) {
+                console.error('加载会话失败:', error);
+            }
+        }
+
+        // 在整个文档上添加点击事件监听器
+        document.addEventListener('click', function(event) {
+            // 获取历史对话框元素
+            const dialog = document.getElementById('historyDialog');
+            const historyBtn = document.querySelector('.history-btn');
+            
+            // 判断点击的目标是否在对话框和按钮之外
+            if (!dialog.contains(event.target) && !historyBtn.contains(event.target)) {
+                dialog.style.display = 'none';
+                document.getElementById('historyOverlay').style.display = 'none';
+            }
+        });
+
+        // 为历史对话框的内容区域添加点击事件监听器
+        document.querySelector('.history-list').addEventListener('click', function(event) {
+            // 阻止点击事件继续冒泡到父元素
+            event.stopPropagation();
+        });
+
+        // 添加键盘快捷键监听
+        document.addEventListener('keydown', function(event) {
+            // 检查是否是 Command+L (Mac) 或 Ctrl+L (Windows/Linux)
+            if ((event.metaKey || event.ctrlKey) && event.key === 'l') {
+                event.preventDefault(); // 阻止默认行为
+                toggleAIChat(); // 调用已有的切换AI对话栏函数
+            }
+        });
+    </script>
+</body>
+</html>

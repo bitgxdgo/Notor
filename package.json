@@ -1,0 +1,53 @@
+{
+  "name": "note.ai",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild",
+    "build:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.noteai.app",
+    "productName": "Note.AI",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.icns"
+    },
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "extraResources": [
+      {
+        "from": "./notes.db",
+        "to": "notes.db"
+      },
+      {
+        "from": ".env",
+        "to": ".env"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^24.13.3",
+    "electron-devtools-installer": "^4.0.0",
+    "electron-rebuild": "^3.2.9"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.3.1",
+    "@mui/material": "^6.3.1",
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.7",
+    "marked": "^15.0.5",
+    "openai": "^4.77.3",
+    "simplemde": "^1.11.2"
+  }
+}
