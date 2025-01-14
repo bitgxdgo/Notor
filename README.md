@@ -5,6 +5,8 @@ Editing Note like cursor
 npm install the dependency from the package.json
 ### start the Notor
 npm start
+## video introduction
+[![Video Title](https://img.youtube.com/vi/-RUfi_FUQI4/0.jpg)](https://youtu.be/-RUfi_FUQI4?si=PBR-3oBxIK8LxBWb)
 
 ## Notor Feature
 ### Home page
